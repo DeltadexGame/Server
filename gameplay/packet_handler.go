@@ -1,7 +1,6 @@
 package gameplay
 
 import (
-	"encoding/json"
 	"weeping-wasp/server/server/networking"
 	"weeping-wasp/server/services"
 
@@ -27,7 +26,7 @@ func handleAuthInfoPacket(p *Player, packet networking.Packet) {
 	wasp := services.WaspService{}
 	if wasp.Authenticate(info["token"].(string)) {
 		log.Info("User successfully authenticated with API.")
-		json.NewEncoder(p.Conn).Encode(networking.Packet{PacketID: 1, Content: map[string]string{"response": "success"}})
+		p.SendPacket(networking.Packet{PacketID: 1, Content: map[string]string{"response": "success"}})
 
 		if PlayerOne == nil {
 			p.ID = 1
@@ -45,7 +44,7 @@ func handleAuthInfoPacket(p *Player, packet networking.Packet) {
 		}
 	} else {
 		log.Info("User attempted to use invalid token.")
-		json.NewEncoder(p.Conn).Encode(networking.Packet{PacketID: 1, Content: map[string]string{"response": "failure"}})
+		p.SendPacket(networking.Packet{PacketID: 1, Content: map[string]string{"response": "failure"}})
 		p.Disconnect()
 	}
 }
@@ -54,4 +53,5 @@ func handleKeepAlivePacket(p *Player, packet networking.Packet) {
 	log.WithFields(log.Fields{
 		"player": p.ID,
 	}).Info("Keep alive received")
+	p.SendPacket(networking.Packet{PacketID: 2, Content: "success"})
 }

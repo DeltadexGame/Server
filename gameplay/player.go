@@ -67,6 +67,11 @@ func (p *Player) PacketReceived(packet networking.Packet) {
 	fun(p, packet)
 }
 
+// SendPacket sends a packet to the player
+func (p *Player) SendPacket(packet networking.Packet) error {
+	return json.NewEncoder(p.Conn).Encode(packet)
+}
+
 // Disconnect terminates with the connection with that player
 func (p *Player) Disconnect() {
 	p.Conn.Close()
