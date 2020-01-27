@@ -42,6 +42,7 @@ func (p *Player) listen() {
 			p.Conn.Close()
 			log.WithFields(log.Fields{
 				"player": p.ID,
+				"error":  err.Error(),
 			}).Info("Player disconnected")
 			break
 		}
