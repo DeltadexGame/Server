@@ -1,10 +1,10 @@
 package main
 
 import (
-	"weeping-wasp/server/config"
-	"weeping-wasp/server/gameplay"
-	"weeping-wasp/server/server"
-	"weeping-wasp/server/services"
+	"weeping-wasp/config"
+	"weeping-wasp/gameplay"
+	"weeping-wasp/server"
+	"weeping-wasp/services"
 
 	"github.com/Strum355/log"
 )

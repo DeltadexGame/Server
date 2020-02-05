@@ -14,7 +14,7 @@ These instructions will get you a copy of the project up and running on your loc
 
 1. Ensure prerequistes are installed.
 2. Run `go build`.
-3. Run the server with `./GameServer`
+3. Run the server with `./weeping-wasp`
 
 ## Acknowledgments
 

@@ -3,7 +3,7 @@ package gameplay
 import (
 	"math/rand"
 	"time"
-	"weeping-wasp/server/server/networking"
+	"weeping-wasp/server/networking"
 
 	"github.com/Strum355/log"
 )

@@ -1,4 +1,4 @@
-module weeping-wasp/server
+module weeping-wasp
 
 go 1.13
 

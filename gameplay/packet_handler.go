@@ -1,8 +1,8 @@
 package gameplay
 
 import (
-	"weeping-wasp/server/server/networking"
-	"weeping-wasp/server/services"
+	"weeping-wasp/server/networking"
+	"weeping-wasp/services"
 
 	"github.com/Strum355/log"
 )

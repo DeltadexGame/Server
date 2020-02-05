@@ -3,7 +3,7 @@ package server
 import (
 	"fmt"
 	"net"
-	"weeping-wasp/server/gameplay"
+	"weeping-wasp/gameplay"
 
 	"github.com/Strum355/log"
 	"github.com/spf13/viper"
