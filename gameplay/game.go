@@ -3,6 +3,7 @@ package gameplay
 import (
 	"math/rand"
 	"time"
+	"weeping-wasp/server/server/networking"
 
 	"github.com/Strum355/log"
 )
@@ -31,4 +32,31 @@ func Start() {
 	log.WithFields(log.Fields{
 		"starting_player": PlayerTurn,
 	}).Info("Starting player decided")
+
+	packetContent := map[string]interface{}{
+		"starting_player": PlayerTurn,
+		"energy":          10,
+	}
+
+	PlayerOne.SendPacket(networking.Packet{PacketID: 2, Content: packetContent})
+	PlayerTwo.SendPacket(networking.Packet{PacketID: 2, Content: packetContent})
+
+	card := Card{ID: 0, Name: "Zombie", Type: 0, Attack: 1, Health: 12, EnergyCost: 1, Ability: Ability{AbilityID: 0, Name: "Zombie", Description: "Monster resurrected at half health upon death", Targeted: false}}
+	hand := []Card{card, card, card, card}
+
+	packetContent = map[string]interface{}{
+		"hand": hand,
+	}
+	PlayerOne.SendPacket(networking.Packet{PacketID: 3, Content: packetContent})
+	PlayerTwo.SendPacket(networking.Packet{PacketID: 3, Content: packetContent})
+
+	for {
+		time.Sleep(5 * time.Second)
+
+		packetContent = map[string]interface{}{
+			"hand": []Card{card},
+		}
+		PlayerOne.SendPacket(networking.Packet{PacketID: 3, Content: packetContent})
+		PlayerTwo.SendPacket(networking.Packet{PacketID: 3, Content: packetContent})
+	}
 }

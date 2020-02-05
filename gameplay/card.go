@@ -2,6 +2,7 @@ package gameplay
 
 // Card represents a physical card held by a player
 type Card struct {
+	ID         int
 	Name       string
 	Type       int
 	Attack     int

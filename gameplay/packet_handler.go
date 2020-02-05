@@ -13,7 +13,6 @@ var PacketHandlers map[int]func(*Player, networking.Packet) = make(map[int]func(
 // RegisterPacketHandlers puts all of the handlers into the map
 func RegisterPacketHandlers() {
 	PacketHandlers[0] = handleAuthInfoPacket
-	PacketHandlers[2] = handleKeepAlivePacket
 }
 
 func handleAuthInfoPacket(p *Player, packet networking.Packet) {
@@ -22,6 +21,9 @@ func handleAuthInfoPacket(p *Player, packet networking.Packet) {
 		"username": info["username"],
 		"token":    info["token"],
 	}).Info("Player information received")
+
+	service := services.DiscordService{}
+	service.SendAlert(info["username"].(string) + " attempted to connect to server.")
 
 	wasp := services.WaspService{}
 	if wasp.Authenticate(info["token"].(string)) {
@@ -47,11 +49,4 @@ func handleAuthInfoPacket(p *Player, packet networking.Packet) {
 		p.SendPacket(networking.Packet{PacketID: 1, Content: map[string]string{"response": "failure"}})
 		p.Disconnect()
 	}
-}
-
-func handleKeepAlivePacket(p *Player, packet networking.Packet) {
-	log.WithFields(log.Fields{
-		"player": p.ID,
-	}).Info("Keep alive received")
-	p.SendPacket(networking.Packet{PacketID: 2, Content: "success"})
 }
