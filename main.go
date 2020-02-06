@@ -1,10 +1,10 @@
 package main
 
 import (
-	"weeping-wasp/config"
-	"weeping-wasp/gameplay"
-	"weeping-wasp/server"
-	"weeping-wasp/services"
+	"deltadex/config"
+	"deltadex/gameplay"
+	"deltadex/server"
+	"deltadex/services"
 
 	"github.com/Strum355/log"
 )
@@ -12,7 +12,7 @@ import (
 func main() {
 	// Setup logger
 	log.InitSimpleLogger(&log.Config{})
-	log.Info("Server starting...")
+	log.Info("Deltadex GameServer starting...")
 
 	// Load config
 	config.Load()

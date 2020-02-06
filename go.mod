@@ -1,4 +1,4 @@
-module weeping-wasp
+module deltadex
 
 go 1.13
 

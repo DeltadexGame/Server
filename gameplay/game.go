@@ -1,9 +1,9 @@
 package gameplay
 
 import (
+	"deltadex/server/networking"
 	"math/rand"
 	"time"
-	"weeping-wasp/server/networking"
 
 	"github.com/Strum355/log"
 )

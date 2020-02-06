@@ -1,9 +1,9 @@
 package server
 
 import (
+	"deltadex/gameplay"
 	"fmt"
 	"net"
-	"weeping-wasp/gameplay"
 
 	"github.com/Strum355/log"
 	"github.com/spf13/viper"

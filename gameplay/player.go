@@ -1,9 +1,9 @@
 package gameplay
 
 import (
+	"deltadex/server/networking"
 	"encoding/json"
 	"net"
-	"weeping-wasp/server/networking"
 
 	"github.com/Strum355/log"
 	"github.com/google/uuid"

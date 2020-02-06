@@ -1,8 +1,8 @@
 package gameplay
 
 import (
-	"weeping-wasp/server/networking"
-	"weeping-wasp/services"
+	"deltadex/server/networking"
+	"deltadex/services"
 
 	"github.com/Strum355/log"
 )
@@ -25,8 +25,8 @@ func handleAuthInfoPacket(p *Player, packet networking.Packet) {
 	service := services.DiscordService{}
 	service.SendAlert(info["username"].(string) + " attempted to connect to server.")
 
-	wasp := services.WaspService{}
-	if wasp.Authenticate(info["token"].(string)) {
+	deltadex := services.DeltadexService{}
+	if deltadex.Authenticate(info["token"].(string)) {
 		log.Info("User successfully authenticated with API.")
 		p.SendPacket(networking.Packet{PacketID: 1, Content: map[string]string{"response": "success"}})
 
