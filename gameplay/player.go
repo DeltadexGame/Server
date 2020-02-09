@@ -20,6 +20,8 @@ type Player struct {
 	Hand          []Card
 	Deck          []Card
 	Energy        int
+	Health        int
+	MaxHealth     int
 	Authenticated bool
 }
 
@@ -83,9 +85,8 @@ func (p *Player) SendPacket(packet networking.Packet) error {
 func (p *Player) OtherPlayer() *Player {
 	if p.ID == 1 {
 		return PlayerTwo
-	} else {
-		return PlayerOne
 	}
+	return PlayerOne
 }
 
 // Disconnect terminates with the connection with that player
@@ -98,9 +99,14 @@ func (p *Player) Disconnect() {
 
 // PlayCard plays the selected card to the selected position
 func (p *Player) PlayCard(card Card, position int) bool {
+	if card.EnergyCost > p.Energy {
+		return false
+	}
 	if card.Type == 0 {
 		// p.Monsters[position] = Monster{card.Name, card.Attack, card.Health, card.Health, card.Ability}
 	}
+
+	p.Energy -= card.EnergyCost
 
 	packetContent := map[string]interface{}{"card": card, "position": position}
 	p.OtherPlayer().SendPacket(networking.Packet{PacketID: networking.OpponentPlayCard, Content: packetContent})

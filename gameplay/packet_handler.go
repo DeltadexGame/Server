@@ -67,9 +67,16 @@ func handlePlayCardPacket(p *Player, packet networking.Packet) {
 	}).Debug("Card played")
 
 	handPosition, _ := strconv.Atoi(info["from"].(string))
-	card := p.Hand[handPosition]
-
 	place, _ := strconv.Atoi(info["place"].(string))
+
+	if handPosition > len(p.Hand)-1 {
+		log.Debug("PLAYER PLAYED CARD NOT IN HAND")
+		packetContent := map[string]interface{}{"result": false, "from": handPosition, "place": place}
+		p.SendPacket(networking.Packet{PacketID: networking.PlayCardResult, Content: packetContent})
+		return
+	}
+
+	card := p.Hand[handPosition]
 	result := p.PlayCard(card, place)
 
 	packetContent := map[string]interface{}{"result": result, "from": handPosition, "place": place}
