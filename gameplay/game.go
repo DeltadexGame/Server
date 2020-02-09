@@ -31,15 +31,19 @@ func Start() {
 	PlayerTurn = rand.Intn(2) + 1
 	log.WithFields(log.Fields{
 		"starting_player": PlayerTurn,
+		"player_one":      PlayerOne.Username,
+		"player_two":      PlayerTwo.Username,
 	}).Info("Starting player decided")
 
 	packetContent := map[string]interface{}{
 		"starting_player": PlayerTurn,
 		"energy":          10,
+		"player_one":      PlayerOne.Username,
+		"player_two":      PlayerTwo.Username,
 	}
 
-	PlayerOne.SendPacket(networking.Packet{PacketID: 2, Content: packetContent})
-	PlayerTwo.SendPacket(networking.Packet{PacketID: 2, Content: packetContent})
+	PlayerOne.SendPacket(networking.Packet{PacketID: networking.GameInitiationInformation, Content: packetContent})
+	PlayerTwo.SendPacket(networking.Packet{PacketID: networking.GameInitiationInformation, Content: packetContent})
 
 	card := Card{ID: 0, Name: "Zombie", Type: 0, Attack: 1, Health: 12, EnergyCost: 1, Ability: Ability{AbilityID: 0, Name: "Zombie", Description: "Monster resurrected at half health upon death", Targeted: false}}
 	hand := []Card{card, card, card, card}
@@ -47,16 +51,8 @@ func Start() {
 	packetContent = map[string]interface{}{
 		"hand": hand,
 	}
-	PlayerOne.SendPacket(networking.Packet{PacketID: 3, Content: packetContent})
-	PlayerTwo.SendPacket(networking.Packet{PacketID: 3, Content: packetContent})
-
-	for {
-		time.Sleep(5 * time.Second)
-
-		packetContent = map[string]interface{}{
-			"hand": []Card{card},
-		}
-		PlayerOne.SendPacket(networking.Packet{PacketID: 3, Content: packetContent})
-		PlayerTwo.SendPacket(networking.Packet{PacketID: 3, Content: packetContent})
-	}
+	PlayerOne.Hand = hand
+	PlayerTwo.Hand = hand
+	PlayerOne.SendPacket(networking.Packet{PacketID: networking.StartingHand, Content: packetContent})
+	PlayerTwo.SendPacket(networking.Packet{PacketID: networking.StartingHand, Content: packetContent})
 }

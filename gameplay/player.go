@@ -11,14 +11,16 @@ import (
 
 // Player holds information about an individual connected to the server
 type Player struct {
-	ID        int
-	Conn      net.Conn
-	UUID      uuid.UUID
-	connected bool
-	Monsters  []Monster
-	Hand      []Card
-	Deck      []Card
-	Energy    int
+	ID            int
+	Username      string
+	Conn          net.Conn
+	UUID          uuid.UUID
+	connected     bool
+	Monsters      []Monster
+	Hand          []Card
+	Deck          []Card
+	Energy        int
+	Authenticated bool
 }
 
 // Handle takes an incoming connection and deals with it
@@ -57,6 +59,10 @@ func (p *Player) PacketReceived(packet networking.Packet) {
 		"reply": packet,
 	}).Info("Message received")
 
+	if packet.PacketID != networking.AuthenticationInformation && !p.Authenticated {
+		return
+	}
+
 	fun, ok := PacketHandlers[packet.PacketID]
 	if !ok {
 		log.WithFields(log.Fields{
@@ -73,10 +79,30 @@ func (p *Player) SendPacket(packet networking.Packet) error {
 	return json.NewEncoder(p.Conn).Encode(packet)
 }
 
+// OtherPlayer returns the Player that is not this player
+func (p *Player) OtherPlayer() *Player {
+	if p.ID == 1 {
+		return PlayerTwo
+	} else {
+		return PlayerOne
+	}
+}
+
 // Disconnect terminates with the connection with that player
 func (p *Player) Disconnect() {
 	p.Conn.Close()
 	log.WithFields(log.Fields{
 		"uuid": p.UUID,
 	}).Info("User disconnected")
+}
+
+// PlayCard plays the selected card to the selected position
+func (p *Player) PlayCard(card Card, position int) bool {
+	if card.Type == 0 {
+		// p.Monsters[position] = Monster{card.Name, card.Attack, card.Health, card.Health, card.Ability}
+	}
+
+	packetContent := map[string]interface{}{"card": card, "position": position}
+	p.OtherPlayer().SendPacket(networking.Packet{PacketID: networking.OpponentPlayCard, Content: packetContent})
+	return true
 }

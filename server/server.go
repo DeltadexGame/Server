@@ -28,7 +28,7 @@ func (s *Server) Start() {
 			continue
 		}
 
-		player := gameplay.Player{Conn: conn}
+		player := gameplay.Player{Conn: conn, Authenticated: false}
 		go player.Handle()
 	}
 }

@@ -6,4 +6,5 @@ type Monster struct {
 	Attack    int
 	Health    int
 	MaxHealth int
+	Ability   Ability
 }
