@@ -29,7 +29,7 @@ func handleAuthInfoPacket(p *Player, packet networking.Packet) {
 	service.SendAlert(info["username"].(string) + " attempted to connect to server.")
 
 	deltadex := services.DeltadexService{}
-	if deltadex.Authenticate(info["token"].(string)) {
+	if deltadex.Authenticate(info["username"].(string), info["token"].(string)) {
 		log.Info("User successfully authenticated with API.")
 		p.SendPacket(networking.Packet{PacketID: 1, Content: map[string]string{"response": "success"}})
 		p.Username = info["username"].(string)
@@ -90,6 +90,8 @@ func handleEndTurn(p *Player, packet networking.Packet) {
 	if PlayerTurn != p.ID {
 		return
 	}
+
+	EndTurn(p.ID)
 
 	if NextTurn {
 		GameTurn++

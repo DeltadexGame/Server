@@ -8,3 +8,8 @@ type Monster struct {
 	MaxHealth int
 	Ability   Ability
 }
+
+// Damage decreases a monster's health by the given amount
+func (m *Monster) Damage(damage int) {
+	m.Health -= damage
+}

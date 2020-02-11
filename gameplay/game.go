@@ -80,7 +80,8 @@ func Start() {
 	// Send packets to the players to inform them who starts
 	packetContent := map[string]interface{}{
 		"starting_player": PlayerTurn,
-		"energy":          10,
+		"energy":          PlayerOne.Energy,
+		"health":          PlayerOne.MaxHealth,
 		"player_one":      PlayerOne.Username,
 		"player_two":      PlayerTwo.Username,
 	}
@@ -98,4 +99,29 @@ func Start() {
 	PlayerTwo.Hand = hand
 	PlayerOne.SendPacket(networking.Packet{PacketID: networking.StartingHand, Content: packetContent})
 	PlayerTwo.SendPacket(networking.Packet{PacketID: networking.StartingHand, Content: packetContent})
+}
+
+// EndTurn is run when each player ends their turn
+func EndTurn(playerID int) {
+	var player *Player
+	if playerID == 1 {
+		player = PlayerOne
+	} else {
+		player = PlayerTwo
+	}
+	for index := 0; index < len(player.Monsters); index++ {
+		if player.Monsters[index] == (Monster{}) {
+			continue
+		}
+		monster := player.Monsters[index]
+		if player.OtherPlayer().Monsters[index] == (Monster{}) {
+			player.OtherPlayer().Health -= monster.Attack
+			// Check if they've died
+			// Send packet
+			continue
+		}
+
+		player.OtherPlayer().Monsters[index].Damage(monster.Attack)
+		// Send packet
+	}
 }

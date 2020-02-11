@@ -102,6 +102,11 @@ func (p *Player) PlayCard(card Card, position int) bool {
 	if card.EnergyCost > p.Energy {
 		return false
 	}
+
+	if p.Monsters[position] != (Monster{}) {
+		return false
+	}
+
 	if card.Type == 0 {
 		p.Monsters[position] = Monster{card.Name, card.Attack, card.Health, card.Health, card.Ability}
 	}
@@ -110,5 +115,7 @@ func (p *Player) PlayCard(card Card, position int) bool {
 
 	packetContent := map[string]interface{}{"card": card, "position": position}
 	p.OtherPlayer().SendPacket(networking.Packet{PacketID: networking.OpponentPlayCard, Content: packetContent})
+
+	p.SendPacket(networking.Packet{PacketID: networking.RemainingEnergy, Content: map[string]interface{}{"energy": p.Energy}})
 	return true
 }
