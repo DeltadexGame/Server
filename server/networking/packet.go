@@ -12,9 +12,10 @@ const (
 	AuthenticationInformation PacketID = 001
 	AuthenticationStatus      PacketID = 002
 
-	GameInitiationInformation PacketID = 101
-	StartingHand              PacketID = 102
-	OpponentStartingHand      PacketID = 103
+	SelfInitiationInformation     PacketID = 101
+	OpponentInitiationInformation PacketID = 102
+	StartingHand                  PacketID = 103
+	OpponentStartingHand          PacketID = 104
 
 	PlayerPlayCard   PacketID = 201
 	PlayCardResult   PacketID = 202

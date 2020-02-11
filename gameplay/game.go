@@ -43,8 +43,10 @@ func Initialise() {
 
 	PlayerOne.Energy = 10
 	PlayerTwo.Energy = 10
-	PlayerOne.Health = 50
-	PlayerTwo.Health = 50
+	PlayerOne.MaxHealth = 50
+	PlayerTwo.MaxHealth = 50
+	PlayerOne.Health = PlayerOne.MaxHealth
+	PlayerTwo.Health = PlayerTwo.MaxHealth
 
 	GameTurn = 0
 	GameStatus = 0
@@ -78,21 +80,31 @@ func Start() {
 	}).Info("Starting player decided")
 
 	// Send packets to the players to inform them who starts
-	packetContent := map[string]interface{}{
-		"starting_player": PlayerTurn,
-		"energy":          PlayerOne.Energy,
-		"health":          PlayerOne.MaxHealth,
-		"player_one":      PlayerOne.Username,
-		"player_two":      PlayerTwo.Username,
+	selfContent := map[string]interface{}{
+		"username": PlayerOne.Username,
+		"id":       PlayerOne.ID,
+		"energy":   PlayerOne.Energy,
+		"health":   PlayerOne.Health,
+		"starting": PlayerTurn == PlayerOne.ID,
 	}
-	PlayerOne.SendPacket(networking.Packet{PacketID: networking.GameInitiationInformation, Content: packetContent})
-	PlayerTwo.SendPacket(networking.Packet{PacketID: networking.GameInitiationInformation, Content: packetContent})
+	PlayerOne.SendPacket(networking.Packet{PacketID: networking.SelfInitiationInformation, Content: selfContent})
+	PlayerTwo.SendPacket(networking.Packet{PacketID: networking.OpponentInitiationInformation, Content: selfContent})
+
+	selfContent = map[string]interface{}{
+		"username": PlayerTwo.Username,
+		"id":       PlayerTwo.ID,
+		"energy":   PlayerTwo.Energy,
+		"health":   PlayerTwo.Health,
+		"starting": PlayerTurn == PlayerTwo.ID,
+	}
+	PlayerTwo.SendPacket(networking.Packet{PacketID: networking.SelfInitiationInformation, Content: selfContent})
+	PlayerOne.SendPacket(networking.Packet{PacketID: networking.OpponentInitiationInformation, Content: selfContent})
 
 	// Send players packets with their starting hands
 	card := Card{ID: 0, Name: "Zombie", Type: 0, Attack: 1, Health: 12, EnergyCost: 1, Ability: Ability{AbilityID: 0, Name: "Zombie", Description: "Monster resurrected at half health upon death", Targeted: false}}
 	hand := []Card{card, card, card, card}
 
-	packetContent = map[string]interface{}{
+	packetContent := map[string]interface{}{
 		"hand": hand,
 	}
 	PlayerOne.Hand = hand
