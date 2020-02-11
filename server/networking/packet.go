@@ -14,6 +14,7 @@ const (
 
 	GameInitiationInformation PacketID = 101
 	StartingHand              PacketID = 102
+	OpponentStartingHand      PacketID = 103
 
 	PlayerPlayCard   PacketID = 201
 	PlayCardResult   PacketID = 202

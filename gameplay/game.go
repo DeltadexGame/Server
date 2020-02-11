@@ -99,6 +99,9 @@ func Start() {
 	PlayerTwo.Hand = hand
 	PlayerOne.SendPacket(networking.Packet{PacketID: networking.StartingHand, Content: packetContent})
 	PlayerTwo.SendPacket(networking.Packet{PacketID: networking.StartingHand, Content: packetContent})
+
+	PlayerOne.SendPacket(networking.Packet{PacketID: networking.OpponentStartingHand, Content: map[string]interface{}{"hand": len(PlayerTwo.Hand)}})
+	PlayerTwo.SendPacket(networking.Packet{PacketID: networking.OpponentStartingHand, Content: map[string]interface{}{"hand": len(PlayerOne.Hand)}})
 }
 
 // EndTurn is run when each player ends their turn
