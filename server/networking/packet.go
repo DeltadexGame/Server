@@ -22,5 +22,6 @@ const (
 	OpponentPlayCard PacketID = 203
 	RemainingEnergy  PacketID = 204
 
-	EndTurn PacketID = 301
+	EndTurn              PacketID = 301
+	EndTurnMonsterAttack PacketID = 302
 )

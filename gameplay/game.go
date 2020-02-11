@@ -137,6 +137,22 @@ func EndTurn(playerID int) {
 		}
 
 		player.OtherPlayer().Monsters[index].Damage(monster.Attack)
-		// Send packet
+		died := false
+		if player.OtherPlayer().Monsters[index].Health <= 0 {
+			died = true
+		}
+		content := map[string]interface{}{
+			"ownership": false,
+			"position":  index,
+			"died":      died,
+			"monster":   player.OtherPlayer().Monsters[index],
+		}
+		player.OtherPlayer().SendPacket(networking.Packet{PacketID: networking.EndTurnMonsterAttack, Content: content})
+		content["ownership"] = true
+		player.SendPacket(networking.Packet{PacketID: networking.EndTurn, Content: content})
+
+		if died {
+			player.Monsters[index] = Monster{}
+		}
 	}
 }
