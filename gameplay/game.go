@@ -18,6 +18,9 @@ var GameTurn int = 0
 // PlayerTurn decides who is currently taking their turn
 var PlayerTurn int
 
+// NextTurn declares if when the next player ends their turn if the game moves onto the next turn
+var NextTurn bool
+
 // PlayerOne is the first player
 var PlayerOne *Player
 

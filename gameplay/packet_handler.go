@@ -15,6 +15,7 @@ var PacketHandlers map[networking.PacketID]func(*Player, networking.Packet) = ma
 func RegisterPacketHandlers() {
 	PacketHandlers[networking.AuthenticationInformation] = handleAuthInfoPacket
 	PacketHandlers[networking.PlayerPlayCard] = handlePlayCardPacket
+	PacketHandlers[networking.EndTurn] = handleEndTurn
 }
 
 func handleAuthInfoPacket(p *Player, packet networking.Packet) {
@@ -58,6 +59,8 @@ func handleAuthInfoPacket(p *Player, packet networking.Packet) {
 func handlePlayCardPacket(p *Player, packet networking.Packet) {
 	if p.ID != PlayerTurn {
 		log.Debug("Player attepted to play card not on their turn")
+		packetContent := map[string]interface{}{"result": false, "from": -1, "place": -1}
+		p.SendPacket(networking.Packet{PacketID: networking.PlayCardResult, Content: packetContent})
 		return
 	}
 
@@ -81,4 +84,19 @@ func handlePlayCardPacket(p *Player, packet networking.Packet) {
 
 	packetContent := map[string]interface{}{"result": result, "from": handPosition, "place": place}
 	p.SendPacket(networking.Packet{PacketID: networking.PlayCardResult, Content: packetContent})
+}
+
+func handleEndTurn(p *Player, packet networking.Packet) {
+	if PlayerTurn != p.ID {
+		return
+	}
+
+	if NextTurn {
+		GameTurn++
+		NextTurn = false
+		return
+	}
+
+	PlayerTurn = p.OtherPlayer().ID
+	NextTurn = true
 }
