@@ -19,3 +19,4 @@ These instructions will get you a copy of the project up and running on your loc
 ## Acknowledgments
 
 * Structured logging using [https://github.com/Strum355/log](https://github.com/Strum355/log) by Strum355
+* Configuration management using [https://github.com/spf13/viper](https://github.com/spf13/viper) by spf13
