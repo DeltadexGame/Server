@@ -101,7 +101,7 @@ func Start() {
 	PlayerOne.SendPacket(networking.Packet{PacketID: networking.OpponentInitiationInformation, Content: selfContent})
 
 	// Send players packets with their starting hands
-	card := Card{ID: 0, Name: "Zombie", Type: 0, Attack: 1, Health: 12, EnergyCost: 1, Ability: Ability{AbilityID: 0, Name: "Zombie", Description: "Monster resurrected at half health upon death", Targeted: false}}
+	card := Card{ID: 0, Name: "Zombie", Type: 0, Attack: 2, Health: 4, EnergyCost: 2, Ability: Ability{AbilityID: 0, Name: "Zombie", Description: "Monster resurrected at half health upon death", Targeted: false}}
 	hand := []Card{card, card, card, card}
 
 	packetContent := map[string]interface{}{
@@ -133,7 +133,7 @@ func EndTurn(playerID int) {
 			player.OtherPlayer().Health -= monster.Attack
 			// Check if they've died
 			content := map[string]interface{}{
-				"ownership": false,
+				"ownership": true,
 				"position":  index,
 				"died":      false,
 				"health":    player.OtherPlayer().Health,
@@ -141,6 +141,7 @@ func EndTurn(playerID int) {
 			}
 			player.SendPacket(networking.Packet{PacketID: networking.EndTurnPlayerAttack, Content: content})
 			content["self"] = true
+			content["ownership"] = false
 			player.OtherPlayer().SendPacket(networking.Packet{PacketID: networking.EndTurnPlayerAttack, Content: content})
 			continue
 		}
@@ -149,6 +150,13 @@ func EndTurn(playerID int) {
 		died := false
 		if player.OtherPlayer().Monsters[index].Health <= 0 {
 			died = true
+		}
+		if died {
+			if player.OtherPlayer().Monsters[index].Ability.AbilityID == 0 {
+				player.OtherPlayer().Monsters[index].MaxHealth = player.OtherPlayer().Monsters[index].MaxHealth / 2
+				player.OtherPlayer().Monsters[index].Health = player.OtherPlayer().Monsters[index].MaxHealth
+				died = false
+			}
 		}
 		content := map[string]interface{}{
 			"ownership": false,
@@ -161,7 +169,7 @@ func EndTurn(playerID int) {
 		player.SendPacket(networking.Packet{PacketID: networking.EndTurnMonsterAttack, Content: content})
 
 		if died {
-			player.Monsters[index] = Monster{}
+			player.OtherPlayer().Monsters[index] = Monster{}
 		}
 	}
 }
