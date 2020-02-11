@@ -103,7 +103,7 @@ func (p *Player) PlayCard(card Card, position int) bool {
 		return false
 	}
 	if card.Type == 0 {
-		// p.Monsters[position] = Monster{card.Name, card.Attack, card.Health, card.Health, card.Ability}
+		p.Monsters[position] = Monster{card.Name, card.Attack, card.Health, card.Health, card.Ability}
 	}
 
 	p.Energy -= card.EnergyCost
