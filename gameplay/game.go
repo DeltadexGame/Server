@@ -11,130 +11,138 @@ import (
 	"github.com/google/uuid"
 )
 
-// GameStatus keeps track of what status the game is currently in
-var GameStatus int = 0
+var (
+	CurGame Game = Game{}
+)
 
-// GameTurn is what turn the game is currently on
-var GameTurn int = 0
+type Game struct {
+	// GameStatus keeps track of what status the game is currently in
+	GameStatus int
 
-// PlayerTurn decides who is currently taking their turn
-var PlayerTurn int
+	// GameTurn is what turn the game is currently on
+	GameTurn int
 
-// NextTurn declares if when the next player ends their turn if the game moves onto the next turn
-var NextTurn bool
+	// PlayerTurn decides who is currently taking their turn
+	PlayerTurn int
 
-// PlayerOne is the first player
-var PlayerOne *Player
+	// NextTurn declares if when the next player ends their turn if the game moves onto the next turn
+	NextTurn bool
 
-// PlayerTwo is the second player
-var PlayerTwo *Player
+	// PlayerOne is the first player
+	PlayerOne *Player
 
-// GameID is used to identify each game
-var GameID uuid.UUID
+	// PlayerTwo is the second player
+	PlayerTwo *Player
+
+	// GameID is used to identify each game
+	GameID uuid.UUID
+}
 
 // Initialise initialises all of the variables in the game
-func Initialise() {
+func (game *Game) Initialise() {
 	custom := make(map[string]map[string]reflect.Value)
 	custom["deltadex/gameplay"] = make(map[string]reflect.Value)
 	custom["deltadex/gameplay"]["Ability"] = reflect.ValueOf(Ability{})
 	custom["deltadex/gameplay"]["Monster"] = reflect.ValueOf(Monster{})
 	custom["deltadex/gameplay"]["Card"] = reflect.ValueOf(Card{})
+	custom["deltadex/gameplay"]["Player"] = reflect.ValueOf((*Player)(nil))
+	custom["deltadex/gameplay"]["Game"] = reflect.ValueOf((*Game)(nil))
 	custom["deltadex/gameplay/events"] = make(map[string]reflect.Value)
 	custom["deltadex/gameplay/events"]["Event"] = reflect.ValueOf(events.Event{})
-	custom["deltadex/gameplay/events"]["EventID"] = reflect.ValueOf(events.MonsterAttackEvent)
+	custom["deltadex/gameplay/events"]["EventID"] = reflect.ValueOf(events.MonsterDieEvent)
 	events.LoadScripts(custom)
 
-	GameID = uuid.New()
+	game.GameID = uuid.New()
 
-	PlayerOne.Hand = []Card{}
-	PlayerTwo.Hand = []Card{}
-	PlayerOne.Deck = []Card{}
-	PlayerTwo.Deck = []Card{}
-	PlayerOne.Monsters = make([]Monster, 3)
-	PlayerTwo.Monsters = make([]Monster, 3)
+	game.PlayerOne.Hand = []Card{}
+	game.PlayerTwo.Hand = []Card{}
+	game.PlayerOne.Deck = []Card{}
+	game.PlayerTwo.Deck = []Card{}
+	game.PlayerOne.Monsters = make([]Monster, 3)
+	game.PlayerTwo.Monsters = make([]Monster, 3)
 
-	PlayerOne.Energy = 10
-	PlayerTwo.Energy = 10
-	PlayerOne.MaxHealth = 50
-	PlayerTwo.MaxHealth = 50
-	PlayerOne.Health = PlayerOne.MaxHealth
-	PlayerTwo.Health = PlayerTwo.MaxHealth
+	game.PlayerOne.Energy = 10
+	game.PlayerTwo.Energy = 10
+	game.PlayerOne.MaxHealth = 50
+	game.PlayerTwo.MaxHealth = 50
+	game.PlayerOne.Health = game.PlayerOne.MaxHealth
+	game.PlayerTwo.Health = game.PlayerTwo.MaxHealth
 
-	GameTurn = 0
-	GameStatus = 0
-	PlayerTurn = 0
+	game.GameTurn = 0
+	game.GameStatus = 0
+	game.PlayerTurn = 0
 }
 
 // Reset resets the game
-func Reset() {
-	Initialise()
+func (game *Game) Reset() {
+	game.Initialise()
 }
 
 // Start starts the game
-func Start() {
+func (game *Game) Start() {
 	// Reset the game before starting
-	Initialise()
+	game.Initialise()
 	log.WithFields(log.Fields{
-		"game_id": GameID,
+		"game_id": game.GameID,
 	}).Info("Starting game, both players connected")
 
 	// Set the game to the first turn and set status to in-progress
-	GameTurn = 1
-	GameStatus = 1
+	game.GameTurn = 1
+	game.GameStatus = 1
 
 	// Decide the starting player
 	rand.Seed(time.Now().UnixNano())
-	PlayerTurn = rand.Intn(2) + 1
+	game.PlayerTurn = rand.Intn(2) + 1
 	log.WithFields(log.Fields{
-		"starting_player": PlayerTurn,
-		"player_one":      PlayerOne.Username,
-		"player_two":      PlayerTwo.Username,
+		"starting_player": game.PlayerTurn,
+		"player_one":      game.PlayerOne.Username,
+		"player_two":      game.PlayerTwo.Username,
 	}).Info("Starting player decided")
 
 	// Send packets to the players to inform them who starts
 	selfContent := map[string]interface{}{
-		"username": PlayerOne.Username,
-		"id":       PlayerOne.ID,
-		"energy":   PlayerOne.Energy,
-		"health":   PlayerOne.Health,
-		"starting": PlayerTurn == PlayerOne.ID,
+		"username": game.PlayerOne.Username,
+		"id":       game.PlayerOne.ID,
+		"energy":   game.PlayerOne.Energy,
+		"health":   game.PlayerOne.Health,
+		"starting": game.PlayerTurn == game.PlayerOne.ID,
 	}
-	PlayerOne.SendPacket(networking.Packet{PacketID: networking.SelfInitiationInformation, Content: selfContent})
-	PlayerTwo.SendPacket(networking.Packet{PacketID: networking.OpponentInitiationInformation, Content: selfContent})
+	game.PlayerOne.SendPacket(networking.Packet{PacketID: networking.SelfInitiationInformation, Content: selfContent})
+	game.PlayerTwo.SendPacket(networking.Packet{PacketID: networking.OpponentInitiationInformation, Content: selfContent})
 
 	selfContent = map[string]interface{}{
-		"username": PlayerTwo.Username,
-		"id":       PlayerTwo.ID,
-		"energy":   PlayerTwo.Energy,
-		"health":   PlayerTwo.Health,
-		"starting": PlayerTurn == PlayerTwo.ID,
+		"username": game.PlayerTwo.Username,
+		"id":       game.PlayerTwo.ID,
+		"energy":   game.PlayerTwo.Energy,
+		"health":   game.PlayerTwo.Health,
+		"starting": game.PlayerTurn == game.PlayerTwo.ID,
 	}
-	PlayerTwo.SendPacket(networking.Packet{PacketID: networking.SelfInitiationInformation, Content: selfContent})
-	PlayerOne.SendPacket(networking.Packet{PacketID: networking.OpponentInitiationInformation, Content: selfContent})
+	game.PlayerTwo.SendPacket(networking.Packet{PacketID: networking.SelfInitiationInformation, Content: selfContent})
+	game.PlayerOne.SendPacket(networking.Packet{PacketID: networking.OpponentInitiationInformation, Content: selfContent})
 
 	// Send players packets with their starting hands
-	card := Card{ID: 0, Name: "Zombie", Type: 0, Attack: 2, Health: 4, EnergyCost: 2, Ability: Ability{AbilityID: 0, Name: "Zombie", Description: "Monster resurrected at half health upon death", Targeted: false}}
+	card := Card{ID: 0, Name: "Zombie", Type: 0, Attack: 2, Health: 4, EnergyCost: 2, Ability: Ability{AbilityID: 1, Name: "Zombie", Description: "Monster resurrected at half health upon death", Targeted: false}}
 	hand := []Card{card, card, card, card}
 
 	packetContent := map[string]interface{}{
 		"hand": hand,
 	}
-	PlayerOne.Hand = hand
-	PlayerTwo.Hand = hand
-	PlayerOne.SendPacket(networking.Packet{PacketID: networking.StartingHand, Content: packetContent})
-	PlayerTwo.SendPacket(networking.Packet{PacketID: networking.StartingHand, Content: packetContent})
+	game.PlayerOne.Hand = hand
+	game.PlayerTwo.Hand = hand
+	game.PlayerOne.SendPacket(networking.Packet{PacketID: networking.StartingHand, Content: packetContent})
+	game.PlayerTwo.SendPacket(networking.Packet{PacketID: networking.StartingHand, Content: packetContent})
 
-	PlayerOne.SendPacket(networking.Packet{PacketID: networking.OpponentStartingHand, Content: map[string]interface{}{"hand": len(PlayerTwo.Hand)}})
-	PlayerTwo.SendPacket(networking.Packet{PacketID: networking.OpponentStartingHand, Content: map[string]interface{}{"hand": len(PlayerOne.Hand)}})
+	game.PlayerOne.SendPacket(networking.Packet{PacketID: networking.OpponentStartingHand, Content: map[string]interface{}{"hand": len(game.PlayerTwo.Hand)}})
+	game.PlayerTwo.SendPacket(networking.Packet{PacketID: networking.OpponentStartingHand, Content: map[string]interface{}{"hand": len(game.PlayerOne.Hand)}})
 }
 
 // EndTurn is run when each player ends their turn
-func EndTurn(playerID int) {
+func (game *Game) EndTurn(playerID int) {
 	var player *Player
 	if playerID == 1 {
-		player = PlayerOne
+		player = game.PlayerOne
 	} else {
-		player = PlayerTwo
+		player = game.PlayerTwo
 	}
 	for index := 0; index < len(player.Monsters); index++ {
 		if player.Monsters[index] == (Monster{}) {
@@ -163,13 +171,6 @@ func EndTurn(playerID int) {
 		if player.OtherPlayer().Monsters[index].Health <= 0 {
 			died = true
 		}
-		if died {
-			if player.OtherPlayer().Monsters[index].Ability.AbilityID == 0 {
-				player.OtherPlayer().Monsters[index].MaxHealth = player.OtherPlayer().Monsters[index].MaxHealth / 2
-				player.OtherPlayer().Monsters[index].Health = player.OtherPlayer().Monsters[index].MaxHealth
-				died = false
-			}
-		}
 		content := map[string]interface{}{
 			"ownership": false,
 			"position":  index,
@@ -181,7 +182,9 @@ func EndTurn(playerID int) {
 		player.SendPacket(networking.Packet{PacketID: networking.EndTurnMonsterAttack, Content: content})
 
 		if died {
+			monster := player.OtherPlayer().Monsters[index]
 			player.OtherPlayer().Monsters[index] = Monster{}
+			events.PushEvent(events.Event{EventID: events.MonsterDieEvent, EventInfo: map[string]interface{}{"game": &CurGame, "monster": monster, "position": index, "player": player.OtherPlayer()}})
 		}
 	}
 }

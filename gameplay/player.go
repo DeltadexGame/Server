@@ -84,9 +84,9 @@ func (p *Player) SendPacket(packet networking.Packet) error {
 // OtherPlayer returns the Player that is not this player
 func (p *Player) OtherPlayer() *Player {
 	if p.ID == 1 {
-		return PlayerTwo
+		return CurGame.PlayerTwo
 	}
-	return PlayerOne
+	return CurGame.PlayerOne
 }
 
 // Disconnect terminates with the connection with that player
@@ -95,6 +95,10 @@ func (p *Player) Disconnect() {
 	log.WithFields(log.Fields{
 		"uuid": p.UUID,
 	}).Info("User disconnected")
+}
+
+func (p *Player) SpawnMonster(monster Monster, position int) {
+	p.Monsters[position] = monster
 }
 
 // PlayCard plays the selected card to the selected position

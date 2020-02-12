@@ -16,7 +16,7 @@ var (
 type EventID string
 
 const (
-	MonsterAttackEvent EventID = "MonsterAttackEvent"
+	MonsterDieEvent EventID = "MonsterDieEvent"
 )
 
 type Event struct {

@@ -35,19 +35,19 @@ func handleAuthInfoPacket(p *Player, packet networking.Packet) {
 		p.Username = info["username"].(string)
 		p.Authenticated = true
 
-		if PlayerOne == nil {
+		if CurGame.PlayerOne == nil {
 			p.ID = 1
-			PlayerOne = p
+			CurGame.PlayerOne = p
 			log.WithFields(log.Fields{
-				"uuid": PlayerOne.UUID,
+				"uuid": CurGame.PlayerOne.UUID,
 			}).Info("Player One connected")
 		} else {
 			p.ID = 2
-			PlayerTwo = p
+			CurGame.PlayerTwo = p
 			log.WithFields(log.Fields{
-				"uuid": PlayerTwo.UUID,
+				"uuid": CurGame.PlayerTwo.UUID,
 			}).Info("Player Two connected")
-			Start()
+			CurGame.Start()
 		}
 	} else {
 		log.Info("User attempted to use invalid token.")
@@ -57,7 +57,7 @@ func handleAuthInfoPacket(p *Player, packet networking.Packet) {
 }
 
 func handlePlayCardPacket(p *Player, packet networking.Packet) {
-	if p.ID != PlayerTurn {
+	if p.ID != CurGame.PlayerTurn {
 		log.Debug("Player attepted to play card not on their turn")
 		packetContent := map[string]interface{}{"result": false, "from": -1, "place": -1}
 		p.SendPacket(networking.Packet{PacketID: networking.PlayCardResult, Content: packetContent})
@@ -87,19 +87,19 @@ func handlePlayCardPacket(p *Player, packet networking.Packet) {
 }
 
 func handleEndTurn(p *Player, packet networking.Packet) {
-	if PlayerTurn != p.ID {
+	if CurGame.PlayerTurn != p.ID {
 		return
 	}
 
-	EndTurn(p.ID)
+	CurGame.EndTurn(p.ID)
 
-	if NextTurn {
-		GameTurn++
-		NextTurn = false
-		PlayerTurn = p.OtherPlayer().ID
+	if CurGame.NextTurn {
+		CurGame.GameTurn++
+		CurGame.NextTurn = false
+		CurGame.PlayerTurn = p.OtherPlayer().ID
 		return
 	}
 
-	PlayerTurn = p.OtherPlayer().ID
-	NextTurn = true
+	CurGame.PlayerTurn = p.OtherPlayer().ID
+	CurGame.NextTurn = true
 }
