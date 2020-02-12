@@ -1,8 +1,10 @@
 package gameplay
 
 import (
+	"deltadex/gameplay/events"
 	"deltadex/server/networking"
 	"math/rand"
+	"reflect"
 	"time"
 
 	"github.com/Strum355/log"
@@ -32,6 +34,16 @@ var GameID uuid.UUID
 
 // Initialise initialises all of the variables in the game
 func Initialise() {
+	custom := make(map[string]map[string]reflect.Value)
+	custom["deltadex/gameplay"] = make(map[string]reflect.Value)
+	custom["deltadex/gameplay"]["Ability"] = reflect.ValueOf(Ability{})
+	custom["deltadex/gameplay"]["Monster"] = reflect.ValueOf(Monster{})
+	custom["deltadex/gameplay"]["Card"] = reflect.ValueOf(Card{})
+	custom["deltadex/gameplay/events"] = make(map[string]reflect.Value)
+	custom["deltadex/gameplay/events"]["Event"] = reflect.ValueOf(events.Event{})
+	custom["deltadex/gameplay/events"]["EventID"] = reflect.ValueOf(events.MonsterAttackEvent)
+	events.LoadScripts(custom)
+
 	GameID = uuid.New()
 
 	PlayerOne.Hand = []Card{}

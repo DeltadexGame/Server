@@ -96,6 +96,7 @@ func handleEndTurn(p *Player, packet networking.Packet) {
 	if NextTurn {
 		GameTurn++
 		NextTurn = false
+		PlayerTurn = p.OtherPlayer().ID
 		return
 	}
 
