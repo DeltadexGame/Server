@@ -3,16 +3,23 @@ package gameplay
 import (
 	"deltadex/gameplay/events"
 	"deltadex/server/networking"
+	"encoding/json"
+	"io/ioutil"
 	"math/rand"
+	"os"
 	"reflect"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/Strum355/log"
 	"github.com/google/uuid"
+	"gopkg.in/src-d/go-git.v4"
 )
 
 var (
-	CurGame Game = Game{}
+	CurGame Game         = Game{}
+	Cards   map[int]Card = make(map[int]Card)
 )
 
 type Game struct {
@@ -40,6 +47,8 @@ type Game struct {
 
 // Initialise initialises all of the variables in the game
 func (game *Game) Initialise() {
+	downloadCards()
+	loadCards()
 	custom := make(map[string]map[string]reflect.Value)
 	custom["deltadex/gameplay"] = make(map[string]reflect.Value)
 	custom["deltadex/gameplay"]["Ability"] = reflect.ValueOf(Ability{})
@@ -121,8 +130,7 @@ func (game *Game) Start() {
 	game.PlayerOne.SendPacket(networking.Packet{PacketID: networking.OpponentInitiationInformation, Content: selfContent})
 
 	// Send players packets with their starting hands
-	card := Card{ID: 0, Name: "Zombie", Type: 0, Attack: 2, Health: 4, EnergyCost: 2, Ability: Ability{AbilityID: 1, Name: "Zombie", Description: "Monster resurrected at half health upon death", Targeted: false}}
-	hand := []Card{card, card, card, card}
+	hand := []Card{Cards[1], Cards[1], Cards[1], Cards[1]}
 
 	packetContent := map[string]interface{}{
 		"hand": hand,
@@ -187,4 +195,41 @@ func (game *Game) EndTurn(playerID int) {
 			events.PushEvent(events.Event{EventID: events.MonsterDieEvent, EventInfo: map[string]interface{}{"game": &CurGame, "monster": monster, "position": index, "player": player.OtherPlayer()}})
 		}
 	}
+}
+
+func downloadCards() {
+	os.RemoveAll(".cache/")
+	_, err := git.PlainClone(".cache/Cards", false, &git.CloneOptions{
+		URL:      "https://github.com/DeltadexGame/Cards",
+		Progress: os.Stdout,
+	})
+	if err != nil {
+		log.WithError(err).Error("Could not download cards. Aborting!!")
+		os.Exit(1)
+	}
+}
+
+func loadCards() {
+	files, err := ioutil.ReadDir(".cache/Cards/cards")
+	if err != nil {
+		log.WithError(err).Error("Could not load cards")
+		os.Exit(1)
+		return
+	}
+
+	for _, file := range files {
+		f, _ := os.Open(".cache/Cards/cards/" + file.Name())
+		card := Card{}
+		json.NewDecoder(f).Decode(&card)
+		result, err := strconv.Atoi(strings.Replace(file.Name(), ".json", "", 1))
+		if err != nil {
+			log.WithError(err).Error("Could not get ID of card.")
+			continue
+		}
+		Cards[result] = card
+	}
+
+	log.WithFields(log.Fields{
+		"cards": len(Cards),
+	}).Info("Loaded cards")
 }

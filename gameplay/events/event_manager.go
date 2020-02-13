@@ -25,7 +25,7 @@ type Event struct {
 }
 
 func LoadScripts(custom map[string]map[string]reflect.Value) {
-	files, err := ioutil.ReadDir("scripts")
+	files, err := ioutil.ReadDir(".cache/Cards/scripts")
 	if err != nil {
 		log.WithError(err).Error("Could not load scripts")
 		return
@@ -36,7 +36,8 @@ func LoadScripts(custom map[string]map[string]reflect.Value) {
 		interpreter.Use(stdlib.Symbols)
 
 		interpreter.Use(custom)
-		read, err := ioutil.ReadFile("scripts/" + file.Name())
+		files, err := ioutil.ReadDir(".cache/Cards/scripts/" + file.Name())
+		read, err := ioutil.ReadFile(".cache/Cards/scripts/" + file.Name() + "/" + files[0].Name())
 		if err != nil {
 			log.WithError(err).Error("Could not read script")
 			return

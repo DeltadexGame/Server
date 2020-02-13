@@ -7,4 +7,5 @@ require (
 	github.com/containous/yaegi v0.7.5
 	github.com/google/uuid v1.1.1
 	github.com/spf13/viper v1.6.1
+	gopkg.in/src-d/go-git.v4 v4.13.1
 )
