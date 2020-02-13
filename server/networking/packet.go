@@ -21,6 +21,7 @@ const (
 	PlayCardResult   PacketID = 202
 	OpponentPlayCard PacketID = 203
 	RemainingEnergy  PacketID = 204
+	MonsterSpawn     PacketID = 205
 
 	EndTurn              PacketID = 301
 	EndTurnMonsterAttack PacketID = 302

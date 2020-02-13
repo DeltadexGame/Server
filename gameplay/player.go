@@ -99,6 +99,8 @@ func (p *Player) Disconnect() {
 
 func (p *Player) SpawnMonster(monster Monster, position int) {
 	p.Monsters[position] = monster
+	p.SendPacket(networking.Packet{PacketID: networking.MonsterSpawn, Content: map[string]interface{}{"position": position, "ownership": true, "monster": monster}})
+	p.OtherPlayer().SendPacket(networking.Packet{PacketID: networking.MonsterSpawn, Content: map[string]interface{}{"position": position, "ownership": false, "monster": monster}})
 }
 
 // PlayCard plays the selected card to the selected position
@@ -107,12 +109,8 @@ func (p *Player) PlayCard(card Card, position int) bool {
 		return false
 	}
 
-	if p.Monsters[position] != (Monster{}) {
+	if card.Type != 0 && p.Monsters[position] != (Monster{}) {
 		return false
-	}
-
-	if card.Type == 0 {
-		p.Monsters[position] = Monster{card.Name, card.Attack, card.Health, card.Health, card.Ability}
 	}
 
 	p.Energy -= card.EnergyCost
@@ -121,5 +119,9 @@ func (p *Player) PlayCard(card Card, position int) bool {
 	p.OtherPlayer().SendPacket(networking.Packet{PacketID: networking.OpponentPlayCard, Content: packetContent})
 
 	p.SendPacket(networking.Packet{PacketID: networking.RemainingEnergy, Content: map[string]interface{}{"energy": p.Energy}})
+
+	if card.Type == 0 {
+		p.SpawnMonster(Monster{card.Name, card.Attack, card.Health, card.Health, card.Ability}, position)
+	}
 	return true
 }
