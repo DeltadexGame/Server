@@ -57,13 +57,6 @@ func handleAuthInfoPacket(p *Player, packet networking.Packet) {
 }
 
 func handlePlayCardPacket(p *Player, packet networking.Packet) {
-	if p.ID != CurGame.PlayerTurn {
-		log.Debug("Player attepted to play card not on their turn")
-		packetContent := map[string]interface{}{"result": false, "from": -1, "place": -1}
-		p.SendPacket(networking.Packet{PacketID: networking.PlayCardResult, Content: packetContent})
-		return
-	}
-
 	info := packet.Content.(map[string]interface{})
 	log.WithFields(log.Fields{
 		"from": info["from"],
@@ -71,6 +64,13 @@ func handlePlayCardPacket(p *Player, packet networking.Packet) {
 
 	handPosition, _ := strconv.Atoi(info["from"].(string))
 	place, _ := strconv.Atoi(info["place"].(string))
+
+	if p.ID != CurGame.PlayerTurn {
+		log.Debug("Player attepted to play card not on their turn")
+		packetContent := map[string]interface{}{"result": false, "from": handPosition, "place": place}
+		p.SendPacket(networking.Packet{PacketID: networking.PlayCardResult, Content: packetContent})
+		return
+	}
 
 	if handPosition > len(p.Hand)-1 {
 		log.Debug("PLAYER PLAYED CARD NOT IN HAND")
