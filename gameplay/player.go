@@ -97,10 +97,16 @@ func (p *Player) Disconnect() {
 	}).Info("User disconnected")
 }
 
+// SpawnMonster creates a monster at the given position
 func (p *Player) SpawnMonster(monster Monster, position int) {
 	p.Monsters[position] = monster
 	p.SendPacket(networking.Packet{PacketID: networking.MonsterSpawn, Content: map[string]interface{}{"position": position, "ownership": true, "monster": monster}})
 	p.OtherPlayer().SendPacket(networking.Packet{PacketID: networking.MonsterSpawn, Content: map[string]interface{}{"position": position, "ownership": false, "monster": monster}})
+}
+
+// Damage damages the player by a given amount
+func (p *Player) Damage(damage int) {
+	p.Health -= damage
 }
 
 // PlayCard plays the selected card to the selected position
