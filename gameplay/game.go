@@ -200,6 +200,8 @@ func (game *Game) EndTurn(player *Player) {
 		}
 	}
 
+	player.DrawCard()
+
 	player.OtherPlayer().SendPacket(networking.Packet{PacketID: networking.StartTurn, Content: map[string]interface{}{"self": "true"}})
 	player.SendPacket(networking.Packet{PacketID: networking.StartTurn, Content: map[string]interface{}{"self": "false"}})
 }

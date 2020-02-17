@@ -109,6 +109,17 @@ func (p *Player) Damage(damage int) {
 	p.Health -= damage
 }
 
+// DrawCard draws a random card from their deck
+func (p *Player) DrawCard() {
+	// DRAW RANDOM CARD FROM DECK
+
+	card := Cards[1]
+	p.Hand = append(p.Hand, card)
+
+	p.SendPacket(networking.Packet{PacketID: networking.DrawCard, Content: map[string]interface{}{"card": card}})
+	p.OtherPlayer().SendPacket(networking.Packet{PacketID: networking.OpponentDrawCard, Content: map[string]interface{}{}})
+}
+
 // PlayCard plays the selected card to the selected position
 func (p *Player) PlayCard(card Card, position int) bool {
 	if card.EnergyCost > p.Energy {
