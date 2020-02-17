@@ -91,7 +91,7 @@ func handleEndTurn(p *Player, packet networking.Packet) {
 		return
 	}
 
-	CurGame.EndTurn(p.ID)
+	CurGame.EndTurn(p)
 
 	if CurGame.NextTurn {
 		CurGame.GameTurn++

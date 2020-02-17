@@ -26,4 +26,6 @@ const (
 	EndTurn              PacketID = 301
 	EndTurnMonsterAttack PacketID = 302
 	EndTurnPlayerAttack  PacketID = 303
+
+	StartTurn PacketID = 401
 )

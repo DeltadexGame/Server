@@ -142,16 +142,20 @@ func (game *Game) Start() {
 
 	game.PlayerOne.SendPacket(networking.Packet{PacketID: networking.OpponentStartingHand, Content: map[string]interface{}{"hand": len(game.PlayerTwo.Hand)}})
 	game.PlayerTwo.SendPacket(networking.Packet{PacketID: networking.OpponentStartingHand, Content: map[string]interface{}{"hand": len(game.PlayerOne.Hand)}})
+
+	if game.PlayerTurn == 1 {
+		game.PlayerOne.SendPacket(networking.Packet{PacketID: networking.StartTurn, Content: map[string]interface{}{"self": "true"}})
+		game.PlayerTwo.SendPacket(networking.Packet{PacketID: networking.StartTurn, Content: map[string]interface{}{"self": "false"}})
+	} else {
+		game.PlayerOne.SendPacket(networking.Packet{PacketID: networking.StartTurn, Content: map[string]interface{}{"self": "false"}})
+		game.PlayerTwo.SendPacket(networking.Packet{PacketID: networking.StartTurn, Content: map[string]interface{}{"self": "true"}})
+	}
 }
 
 // EndTurn is run when each player ends their turn
-func (game *Game) EndTurn(playerID int) {
-	var player *Player
-	if playerID == 1 {
-		player = game.PlayerOne
-	} else {
-		player = game.PlayerTwo
-	}
+func (game *Game) EndTurn(player *Player) {
+	player.OtherPlayer().SendPacket(networking.Packet{PacketID: networking.EndTurn, Content: map[string]interface{}{"self": false}})
+	player.SendPacket(networking.Packet{PacketID: networking.EndTurn, Content: map[string]interface{}{"self": true}})
 	for index := 0; index < len(player.Monsters); index++ {
 		if player.Monsters[index] == (Monster{}) {
 			continue
@@ -195,6 +199,9 @@ func (game *Game) EndTurn(playerID int) {
 			events.PushEvent(events.Event{EventID: events.MonsterDieEvent, EventInfo: map[string]interface{}{"game": &CurGame, "monster": monster, "position": index, "player": player.OtherPlayer()}})
 		}
 	}
+
+	player.OtherPlayer().SendPacket(networking.Packet{PacketID: networking.StartTurn, Content: map[string]interface{}{"self": "false"}})
+	player.SendPacket(networking.Packet{PacketID: networking.StartTurn, Content: map[string]interface{}{"self": "true"}})
 }
 
 func downloadCards() {
