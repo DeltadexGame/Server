@@ -200,8 +200,8 @@ func (game *Game) EndTurn(player *Player) {
 		}
 	}
 
-	player.OtherPlayer().SendPacket(networking.Packet{PacketID: networking.StartTurn, Content: map[string]interface{}{"self": "false"}})
-	player.SendPacket(networking.Packet{PacketID: networking.StartTurn, Content: map[string]interface{}{"self": "true"}})
+	player.OtherPlayer().SendPacket(networking.Packet{PacketID: networking.StartTurn, Content: map[string]interface{}{"self": "true"}})
+	player.SendPacket(networking.Packet{PacketID: networking.StartTurn, Content: map[string]interface{}{"self": "false"}})
 }
 
 func downloadCards() {
