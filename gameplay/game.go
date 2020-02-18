@@ -4,6 +4,7 @@ import (
 	"deltadex/gameplay/events"
 	"deltadex/server/networking"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"math/rand"
 	"os"
@@ -14,6 +15,7 @@ import (
 
 	"github.com/Strum355/log"
 	"github.com/google/uuid"
+	"github.com/spf13/viper"
 	"gopkg.in/src-d/go-git.v4"
 )
 
@@ -47,7 +49,9 @@ type Game struct {
 
 // Initialise initialises all of the variables in the game
 func (game *Game) Initialise() {
-	downloadCards()
+	if viper.GetBool("game.download") {
+		downloadCards()
+	}
 	loadCards()
 	custom := make(map[string]map[string]reflect.Value)
 	custom["deltadex/gameplay"] = make(map[string]reflect.Value)
@@ -130,7 +134,8 @@ func (game *Game) Start() {
 	game.PlayerOne.SendPacket(networking.Packet{PacketID: networking.OpponentInitiationInformation, Content: selfContent})
 
 	// Send players packets with their starting hands
-	hand := []Card{Cards[1], Cards[1], Cards[1], Cards[1]}
+	rand.Seed(time.Now().UnixNano())
+	hand := []Card{Cards[2], Cards[2], Cards[2], Cards[2]}
 
 	packetContent := map[string]interface{}{
 		"hand": hand,
@@ -178,11 +183,23 @@ func (game *Game) EndTurn(player *Player) {
 			continue
 		}
 
-		player.OtherPlayer().Monsters[index].Damage(monster.Attack)
+		attacked := player.OtherPlayer().Monsters[index]
+		damageEvent := events.Event{EventID: events.MonsterDamageEvent, EventInfo: map[string]interface{}{"game": &CurGame, "monster": attacked, "attacker": monster, "position": index, "player": player.OtherPlayer(), "cancelled": false, "damage": monster.Attack}}
+		damageEvent = events.PushEvent(damageEvent)
+		if !damageEvent.EventInfo["cancelled"].(bool) {
+			attacked.Damage(damageEvent.EventInfo["damage"].(int))
+			fmt.Println(damageEvent.EventInfo)
+		}
 		died := false
 		if player.OtherPlayer().Monsters[index].Health <= 0 {
-			died = true
+			event := events.Event{EventID: events.MonsterDieEvent, EventInfo: map[string]interface{}{"game": &CurGame, "monster": attacked, "position": index, "player": player.OtherPlayer(), "cancelled": false}}
+			event = events.PushEvent(event)
+			if !event.EventInfo["cancelled"].(bool) {
+				player.OtherPlayer().Monsters[index] = Monster{}
+				died = true
+			}
 		}
+
 		content := map[string]interface{}{
 			"ownership": false,
 			"position":  index,
@@ -192,12 +209,6 @@ func (game *Game) EndTurn(player *Player) {
 		player.OtherPlayer().SendPacket(networking.Packet{PacketID: networking.EndTurnMonsterAttack, Content: content})
 		content["ownership"] = true
 		player.SendPacket(networking.Packet{PacketID: networking.EndTurnMonsterAttack, Content: content})
-
-		if died {
-			monster := player.OtherPlayer().Monsters[index]
-			player.OtherPlayer().Monsters[index] = Monster{}
-			events.PushEvent(events.Event{EventID: events.MonsterDieEvent, EventInfo: map[string]interface{}{"game": &CurGame, "monster": monster, "position": index, "player": player.OtherPlayer()}})
-		}
 	}
 
 	player.OtherPlayer().DrawCard()
@@ -219,6 +230,11 @@ func downloadCards() {
 }
 
 func loadCards() {
+	if _, err := os.Stat(".cache/"); err != nil {
+		if os.IsNotExist(err) {
+			downloadCards()
+		}
+	}
 	files, err := ioutil.ReadDir(".cache/Cards/cards")
 	if err != nil {
 		log.WithError(err).Error("Could not load cards")

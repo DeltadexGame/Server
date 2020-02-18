@@ -1,6 +1,7 @@
 package events
 
 import (
+	"fmt"
 	"io/ioutil"
 	"reflect"
 
@@ -16,7 +17,8 @@ var (
 type EventID string
 
 const (
-	MonsterDieEvent EventID = "MonsterDieEvent"
+	MonsterDieEvent    EventID = "MonsterDieEvent"
+	MonsterDamageEvent EventID = "MonsterDamageEvent"
 )
 
 type Event struct {
@@ -52,14 +54,18 @@ func LoadScripts(custom map[string]map[string]reflect.Value) {
 	}
 }
 
-func PushEvent(event Event) {
+func PushEvent(event Event) Event {
 	for _, script := range scripts {
 		v, err := script.Eval("Handle" + string(event.EventID))
 		if err != nil {
-			log.WithError(err).Error("Couldn't push event")
 			continue
 		}
-		function := v.Interface().(func(Event))
-		function(event)
+		function := v.Interface().(func(Event) (Event, bool))
+		eve, changed := function(event)
+		fmt.Println("ran function")
+		if changed {
+			return eve
+		}
 	}
+	return event
 }
