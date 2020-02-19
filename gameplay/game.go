@@ -180,7 +180,7 @@ func (game *Game) EndTurn(player *Player) {
 		damageEvent := events.Event{EventID: events.MonsterDamageEvent, EventInfo: map[string]interface{}{"game": &CurGame, "monster": attacked, "attacker": monster, "position": index, "player": player.OtherPlayer(), "cancelled": false, "damage": monster.Attack}}
 		damageEvent = events.PushEvent(damageEvent)
 		if !damageEvent.EventInfo["cancelled"].(bool) {
-			attacked.Damage(damageEvent.EventInfo["damage"].(int))
+			player.OtherPlayer().Monsters[index].Damage(damageEvent.EventInfo["damage"].(int))
 		}
 		died := false
 		if player.OtherPlayer().Monsters[index].Health <= 0 {

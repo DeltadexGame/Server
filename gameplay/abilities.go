@@ -24,6 +24,5 @@ func HandleHeavyAbility(info map[string]interface{}) (map[string]interface{}, bo
 		return info, false
 	}
 	info["damage"] = info["damage"].(int) / 2
-	fmt.Println("damage halved!!")
 	return info, true
 }
