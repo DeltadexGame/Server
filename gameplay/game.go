@@ -128,7 +128,7 @@ func (game *Game) Start() {
 
 	// Send players packets with their starting hands
 	rand.Seed(time.Now().UnixNano())
-	hand := []Card{Cards[2], Cards[2], Cards[2], Cards[2]}
+	hand := []Card{Cards[1], Cards[1], Cards[2], Cards[2]}
 
 	packetContent := map[string]interface{}{
 		"hand": hand,
