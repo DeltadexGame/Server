@@ -4,11 +4,9 @@ import (
 	"deltadex/gameplay/events"
 	"deltadex/server/networking"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"math/rand"
 	"os"
-	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -53,18 +51,6 @@ func (game *Game) Initialise() {
 		downloadCards()
 	}
 	loadCards()
-	custom := make(map[string]map[string]reflect.Value)
-	custom["deltadex/gameplay"] = make(map[string]reflect.Value)
-	custom["deltadex/gameplay"]["Ability"] = reflect.ValueOf(Ability{})
-	custom["deltadex/gameplay"]["Monster"] = reflect.ValueOf(Monster{})
-	custom["deltadex/gameplay"]["Card"] = reflect.ValueOf(Card{})
-	custom["deltadex/gameplay"]["Player"] = reflect.ValueOf((*Player)(nil))
-	custom["deltadex/gameplay"]["Game"] = reflect.ValueOf((*Game)(nil))
-	custom["deltadex/gameplay/events"] = make(map[string]reflect.Value)
-	custom["deltadex/gameplay/events"]["Event"] = reflect.ValueOf(events.Event{})
-	custom["deltadex/gameplay/events"]["EventID"] = reflect.ValueOf(events.MonsterDieEvent)
-	events.LoadScripts(custom)
-
 	game.GameID = uuid.New()
 
 	game.PlayerOne.Hand = []Card{}
@@ -91,6 +77,11 @@ func (game *Game) Reset() {
 	game.Initialise()
 }
 
+func RegisterHandlers() {
+	events.RegisterHandler(events.MonsterDamageEvent, HandleHeavyAbility)
+	events.RegisterHandler(events.MonsterDieEvent, HandleZombieAbility)
+}
+
 // Start starts the game
 func (game *Game) Start() {
 	// Reset the game before starting
@@ -98,6 +89,8 @@ func (game *Game) Start() {
 	log.WithFields(log.Fields{
 		"game_id": game.GameID,
 	}).Info("Starting game, both players connected")
+
+	RegisterHandlers()
 
 	// Set the game to the first turn and set status to in-progress
 	game.GameTurn = 1
@@ -188,7 +181,6 @@ func (game *Game) EndTurn(player *Player) {
 		damageEvent = events.PushEvent(damageEvent)
 		if !damageEvent.EventInfo["cancelled"].(bool) {
 			attacked.Damage(damageEvent.EventInfo["damage"].(int))
-			fmt.Println(damageEvent.EventInfo)
 		}
 		died := false
 		if player.OtherPlayer().Monsters[index].Health <= 0 {

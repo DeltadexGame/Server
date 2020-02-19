@@ -1,17 +1,11 @@
 package events
 
 import (
-	"fmt"
-	"io/ioutil"
-	"reflect"
-
 	"github.com/Strum355/log"
-	"github.com/containous/yaegi/interp"
-	"github.com/containous/yaegi/stdlib"
 )
 
 var (
-	scripts = make([]*interp.Interpreter, 0)
+	Handlers map[EventID][]func(map[string]interface{}) (map[string]interface{}, bool) = make(map[EventID][]func(map[string]interface{}) (map[string]interface{}, bool))
 )
 
 type EventID string
@@ -26,45 +20,25 @@ type Event struct {
 	EventInfo map[string]interface{}
 }
 
-func LoadScripts(custom map[string]map[string]reflect.Value) {
-	files, err := ioutil.ReadDir(".cache/Cards/scripts")
-	if err != nil {
-		log.WithError(err).Error("Could not load scripts")
-		return
+func RegisterHandler(id EventID, f func(map[string]interface{}) (map[string]interface{}, bool)) {
+	_, ok := Handlers[id]
+	if !ok {
+		Handlers[id] = make([]func(map[string]interface{}) (map[string]interface{}, bool), 0)
 	}
 
-	for _, file := range files {
-		interpreter := interp.New(interp.Options{})
-		interpreter.Use(stdlib.Symbols)
-
-		interpreter.Use(custom)
-		files, err := ioutil.ReadDir(".cache/Cards/scripts/" + file.Name())
-		read, err := ioutil.ReadFile(".cache/Cards/scripts/" + file.Name() + "/" + files[0].Name())
-		if err != nil {
-			log.WithError(err).Error("Could not read script")
-			return
-		}
-		_, err = interpreter.Eval(string(read))
-		if err != nil {
-			log.WithError(err).Error("Could not run script")
-			return
-		}
-
-		scripts = append(scripts, interpreter)
-	}
+	Handlers[id] = append(Handlers[id], f)
 }
 
 func PushEvent(event Event) Event {
-	for _, script := range scripts {
-		v, err := script.Eval("Handle" + string(event.EventID))
-		if err != nil {
-			continue
-		}
-		function := v.Interface().(func(Event) (Event, bool))
-		eve, changed := function(event)
-		fmt.Println("ran function")
+	log.WithFields(log.Fields{
+		"event": event.EventID,
+		"info":  event.EventInfo,
+	}).Info("Event sent")
+	for _, fun := range Handlers[event.EventID] {
+		eve, changed := fun(event.EventInfo)
 		if changed {
-			return eve
+			event.EventInfo = eve
+			return event
 		}
 	}
 	return event
