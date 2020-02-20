@@ -127,16 +127,19 @@ func (game *Game) Start() {
 	game.PlayerOne.SendPacket(networking.Packet{PacketID: networking.OpponentInitiationInformation, Content: selfContent})
 
 	// Send players packets with their starting hands
-	rand.Seed(time.Now().UnixNano())
-	hand := []Card{Cards[1], Cards[1], Cards[2], Cards[2]}
-
-	packetContent := map[string]interface{}{
-		"hand": hand,
+	for i := 0; i < 30; i++ {
+		rand.Seed(time.Now().UnixNano())
+		game.PlayerOne.Deck = append(game.PlayerOne.Deck, Cards[rand.Intn(len(Cards))+1])
 	}
-	game.PlayerOne.Hand = hand
-	game.PlayerTwo.Hand = hand
-	game.PlayerOne.SendPacket(networking.Packet{PacketID: networking.StartingHand, Content: packetContent})
-	game.PlayerTwo.SendPacket(networking.Packet{PacketID: networking.StartingHand, Content: packetContent})
+	for i := 0; i < 30; i++ {
+		rand.Seed(time.Now().UnixNano())
+		game.PlayerTwo.Deck = append(game.PlayerTwo.Deck, Cards[rand.Intn(len(Cards))+1])
+	}
+
+	game.PlayerOne.GenerateHand(4)
+	game.PlayerOne.SendPacket(networking.Packet{PacketID: networking.StartingHand, Content: map[string]interface{}{"hand": game.PlayerOne.Hand}})
+	game.PlayerTwo.GenerateHand(4)
+	game.PlayerTwo.SendPacket(networking.Packet{PacketID: networking.StartingHand, Content: map[string]interface{}{"hand": game.PlayerTwo.Hand}})
 
 	game.PlayerOne.SendPacket(networking.Packet{PacketID: networking.OpponentStartingHand, Content: map[string]interface{}{"hand": len(game.PlayerTwo.Hand)}})
 	game.PlayerTwo.SendPacket(networking.Packet{PacketID: networking.OpponentStartingHand, Content: map[string]interface{}{"hand": len(game.PlayerOne.Hand)}})
