@@ -1,9 +1,5 @@
 package events
 
-import (
-	"github.com/Strum355/log"
-)
-
 var (
 	Handlers map[EventID][]func(map[string]interface{}) (map[string]interface{}, bool) = make(map[EventID][]func(map[string]interface{}) (map[string]interface{}, bool))
 )
@@ -30,10 +26,6 @@ func RegisterHandler(id EventID, f func(map[string]interface{}) (map[string]inte
 }
 
 func PushEvent(event Event) Event {
-	log.WithFields(log.Fields{
-		"event": event.EventID,
-		"info":  event.EventInfo,
-	}).Info("Event sent")
 	for _, fun := range Handlers[event.EventID] {
 		eve, changed := fun(event.EventInfo)
 		if changed {

@@ -137,8 +137,20 @@ func (p *Player) PlayCard(card Card, position int) bool {
 
 	p.SendPacket(networking.Packet{PacketID: networking.RemainingEnergy, Content: map[string]interface{}{"energy": p.Energy}})
 
+	p.removeFromHand(position)
+
 	if card.Type == 0 {
 		p.SpawnMonster(Monster{card.Name, card.Attack, card.Health, card.Health, card.Ability}, position)
 	}
 	return true
+}
+
+func (p *Player) removeFromHand(position int) {
+	newHand := []Card{}
+	for x, y := range p.Hand {
+		if x != position {
+			newHand = append(newHand, y)
+		}
+	}
+	p.Hand = newHand
 }
