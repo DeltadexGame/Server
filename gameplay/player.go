@@ -146,7 +146,8 @@ func (p *Player) PlayCard(card Card, position int) bool {
 	packetContent := map[string]interface{}{"card": card, "position": position}
 	p.OtherPlayer().SendPacket(networking.Packet{PacketID: networking.OpponentPlayCard, Content: packetContent})
 
-	p.SendPacket(networking.Packet{PacketID: networking.RemainingEnergy, Content: map[string]interface{}{"energy": p.Energy}})
+	p.SendPacket(networking.Packet{PacketID: networking.RemainingEnergy, Content: map[string]interface{}{"energy": p.Energy, "self": true}})
+	p.OtherPlayer().SendPacket(networking.Packet{PacketID: networking.RemainingEnergy, Content: map[string]interface{}{"energy": p.Energy, "self": false}})
 
 	p.removeFromHand(position)
 
