@@ -3,7 +3,9 @@ package gameplay
 import (
 	"deltadex/server/networking"
 	"encoding/json"
+	"math/rand"
 	"net"
+	"time"
 
 	"github.com/Strum355/log"
 	"github.com/google/uuid"
@@ -57,10 +59,6 @@ func (p *Player) listen() {
 
 // PacketReceived is the method called on packet received
 func (p *Player) PacketReceived(packet networking.Packet) {
-	log.WithFields(log.Fields{
-		"reply": packet,
-	}).Info("Message received")
-
 	if packet.PacketID != networking.AuthenticationInformation && !p.Authenticated {
 		return
 	}
@@ -89,6 +87,17 @@ func (p *Player) OtherPlayer() *Player {
 	return CurGame.PlayerOne
 }
 
+func (p *Player) GenerateHand(size int) {
+	p.shuffleDeck()
+	p.Hand = p.Deck[len(p.Deck)-size-1 : len(p.Deck)-1]
+	p.Deck = append([]Card{}, p.Deck[:len(p.Deck)-size-1]...)
+}
+
+func (p *Player) shuffleDeck() {
+	rand.Seed(time.Now().UnixNano())
+	rand.Shuffle(len(p.Deck), func(i, j int) { p.Deck[i], p.Deck[j] = p.Deck[j], p.Deck[i] })
+}
+
 // Disconnect terminates with the connection with that player
 func (p *Player) Disconnect() {
 	p.Conn.Close()
@@ -113,7 +122,9 @@ func (p *Player) Damage(damage int) {
 func (p *Player) DrawCard() {
 	// DRAW RANDOM CARD FROM DECK
 
-	card := Cards[1]
+	rand.Seed(time.Now().UnixNano())
+	card := p.Deck[len(p.Deck)-1]
+	p.Deck = append([]Card{}, p.Deck[:len(p.Deck)-1]...)
 	p.Hand = append(p.Hand, card)
 
 	p.SendPacket(networking.Packet{PacketID: networking.DrawCard, Content: map[string]interface{}{"card": card}})
@@ -135,7 +146,8 @@ func (p *Player) PlayCard(card Card, position int) bool {
 	packetContent := map[string]interface{}{"card": card, "position": position}
 	p.OtherPlayer().SendPacket(networking.Packet{PacketID: networking.OpponentPlayCard, Content: packetContent})
 
-	p.SendPacket(networking.Packet{PacketID: networking.RemainingEnergy, Content: map[string]interface{}{"energy": p.Energy}})
+	p.SendPacket(networking.Packet{PacketID: networking.RemainingEnergy, Content: map[string]interface{}{"energy": p.Energy, "self": true}})
+	p.OtherPlayer().SendPacket(networking.Packet{PacketID: networking.RemainingEnergy, Content: map[string]interface{}{"energy": p.Energy, "self": false}})
 
 	p.removeFromHand(position)
 
